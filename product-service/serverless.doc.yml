@@ -1,0 +1,44 @@
+documentation:
+  version: '1'
+  title: 'AWS Shop API'
+  description: 'AWS Shop API'
+  servers:
+    url: https://cyx09zl7v6.execute-api.us-east-1.amazonaws.com/dev
+    description: AWS Shop API
+  models:
+    - name: "GetAllProductsResponse"
+      description: "GET All Products"
+      contentType: "application/json"
+      schema:
+        $schema: "http://json-schema.org/draft-04/schema#"
+        type: array
+        items:
+          type: object
+          properties:
+            id:
+              type: string
+            title:
+              type: string
+            description:
+              type: string
+            count:
+              type: integer
+            price:
+              type: integer
+    - name: "GetProductByIdResponse"
+      description: "GET Product by id"
+      contentType: "application/json"
+      schema:
+        $schema: "http://json-schema.org/draft-04/schema#"
+        type: object
+        properties:
+          id:
+            type: string
+          title:
+            type: string
+          description:
+            type: string
+          count:
+            type: integer
+          price:
+            type: integer

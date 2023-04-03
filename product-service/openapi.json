@@ -1,0 +1,122 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "AWS Shop API",
+    "description": "AWS Shop API",
+    "version": "1"
+  },
+  "components": {
+    "schemas": {
+      "productId": {
+        "type": "string"
+      },
+      "GetProductByIdResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "count": {
+            "type": "integer"
+          },
+          "price": {
+            "type": "integer"
+          }
+        }
+      },
+      "GetAllProductsResponse": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "title": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string"
+            },
+            "count": {
+              "type": "integer"
+            },
+            "price": {
+              "type": "integer"
+            }
+          }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/products/{productId}": {
+      "get": {
+        "summary": "Return product by ID",
+        "description": "OK",
+        "operationId": "product-service-dev-getProductById",
+        "parameters": [
+          {
+            "name": "productId",
+            "in": "path",
+            "description": "Product Id",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/productId"
+            }
+          }
+        ],
+        "tags": [],
+        "responses": {
+          "200": {
+            "description": "Product object",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetProductByIdResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Product not found",
+            "content": {}
+          }
+        }
+      }
+    },
+    "/products": {
+      "get": {
+        "summary": "Return list of products",
+        "description": "OK",
+        "operationId": "product-service-dev-getAllProducts",
+        "parameters": [],
+        "tags": [],
+        "responses": {
+          "200": {
+            "description": "List of products",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetAllProductsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "servers": [
+    {
+      "url": "https://cyx09zl7v6.execute-api.us-east-1.amazonaws.com/dev",
+      "description": "AWS Shop API"
+    }
+  ]
+}
