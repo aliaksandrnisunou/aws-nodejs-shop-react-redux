@@ -52,6 +52,30 @@
             }
           }
         }
+      },
+      "CreateProductRequest": {
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "price": {
+            "type": "string"
+          },
+          "count": {
+            "type": "string"
+          }
+        }
+      },
+      "CreatedProductResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          }
+        }
       }
     }
   },
@@ -110,12 +134,42 @@
             }
           }
         }
+      },
+      "post": {
+        "summary": "Create a new product",
+        "description": "OK",
+        "operationId": "product-service-dev-createProduct",
+        "parameters": [],
+        "tags": [],
+        "requestBody": {
+          "description": "Create a new product body",
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateProductRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Id of created product",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreatedProductResponse"
+                }
+              }
+            }
+          }
+        }
       }
     }
   },
   "servers": [
     {
-      "url": "https://cyx09zl7v6.execute-api.us-east-1.amazonaws.com/dev",
+      "url": "https://avosomxem8.execute-api.us-east-1.amazonaws.com/dev",
       "description": "AWS Shop API"
     }
   ]

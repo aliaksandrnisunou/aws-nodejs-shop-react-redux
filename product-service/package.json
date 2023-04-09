@@ -31,7 +31,12 @@
   "author": "JSCC",
   "license": "MIT",
   "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.309.0",
+    "@aws-sdk/util-dynamodb": "^3.309.0",
     "aws-lambda": "^1.0.7",
+    "dotenv": "^16.0.3",
+    "pg": "^8.10.0",
+    "uuid": "^9.0.0",
     "winston": "^3.3.3"
   }
 }
