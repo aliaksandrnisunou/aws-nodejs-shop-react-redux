@@ -1,6 +1,7 @@
 import { winstonLogger } from "./utils/winstonLogger";
 import { errorResponse, successResponse } from "./utils/apiResponseBuilder";
-import productsData from './data/products-data.json';
+import { DynamoDBClient, GetItemCommand } from "@aws-sdk/client-dynamodb";
+import { marshall, unmarshall } from "@aws-sdk/util-dynamodb";
 
 export const getProductById = async (event) => {
     try {
@@ -8,16 +9,29 @@ export const getProductById = async (event) => {
 
         const { productId = '' } = event.pathParameters;
 
-        const product = await Promise.resolve(productsData.find(item => item.id === productId));
+        const db = new DynamoDBClient({})
+        const { Item: product } = await db.send(new GetItemCommand({
+            TableName: process.env.PRODUCTS_TABLE,
+            Key: marshall({
+                id: productId,
+            }),
+        }));
 
-        winstonLogger.logRequest(`Received product with id: ${ productId }: ${ JSON.stringify( product ) }`);
+        const { Item: stock } = await db.send(new GetItemCommand({
+            TableName: process.env.STOCKS_TABLE,
+            Key: marshall({
+                product_id: productId,
+            }),
+        }));
+
+        winstonLogger.logRequest(`Received product with id: ${ productId }: ${ JSON.stringify( unmarshall(product) ) }`);
         
         if(product)
-            return successResponse(product);
+            return successResponse({ ...unmarshall(product), ...unmarshall(stock) });
 
         return successResponse({ message: 'Product not found' }, 404);
     }
     catch (err) {
-        return errorResponse( err );
+        return errorResponse(err);
     }
 }

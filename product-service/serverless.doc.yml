@@ -3,7 +3,7 @@ documentation:
   title: 'AWS Shop API'
   description: 'AWS Shop API'
   servers:
-    url: https://cyx09zl7v6.execute-api.us-east-1.amazonaws.com/dev
+    url: https://avosomxem8.execute-api.us-east-1.amazonaws.com/dev
     description: AWS Shop API
   models:
     - name: "GetAllProductsResponse"
@@ -42,3 +42,26 @@ documentation:
             type: integer
           price:
             type: integer
+    - name: "CreateProductRequest"
+      description: "Create product request"
+      contentType: "application/json"
+      schema:
+        $schema: "http://json-schema.org/draft-04/schema#"
+        properties:
+          title:
+            type: "string"
+          description:
+            type: "string"
+          price:
+            type: "string"
+          count:
+            type: "string"
+    - name: "CreatedProductResponse"
+      description: "Create product"
+      contentType: "application/json"
+      schema:
+        $schema: "http://json-schema.org/draft-04/schema#"
+        type: object
+        properties:
+          id:
+            type: string
