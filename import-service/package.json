@@ -1,0 +1,43 @@
+{
+  "name": "import-service",
+  "version": "1.0.0",
+  "description": "Import Service created API Gateway and Lambdas",
+  "main": "handler.js",
+  "scripts": {
+    "package-build": "sls package",
+    "deploy:dev": "sls deploy --stage dev",
+    "deploy:prod": "sls deploy --stage prod",
+    "remove:dev-stack": "sls remove --stage dev --region us-east-1",
+    "remove:prod-stack": "sls remove --stage prod --region us-east-1",
+    "test": "jest"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.114",
+    "@types/jest": "^29.5.0",
+    "@types/node": "^18.15.11",
+    "@types/serverless": "^3.12.11",
+    "fork-ts-checker-webpack-plugin": "^8.0.0",
+    "jest": "^29.5.0",
+    "serverless-openapi-documentation": "^0.4.0",
+    "serverless-openapi-documenter": "^0.0.48",
+    "serverless-webpack": "^5.11.0",
+    "ts-jest": "^29.0.5",
+    "ts-loader": "^9.4.2",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.0.3",
+    "webpack": "^5.77.0",
+    "webpack-node-externals": "^3.0.0"
+  },
+  "author": "JSCC",
+  "license": "MIT",
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.312.0",
+    "@aws-sdk/s3-request-presigner": "^3.312.0",
+    "aws-lambda": "^1.0.7",
+    "aws-sdk": "^2.1359.0",
+    "csv-parser": "^3.0.0",
+    "dotenv": "^16.0.3",
+    "sinon": "^15.0.3",
+    "winston": "^3.3.3"
+  }
+}
