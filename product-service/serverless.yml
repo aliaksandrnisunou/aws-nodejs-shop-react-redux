@@ -9,28 +9,33 @@ provider:
   region: us-east-1
   profile: sandx
   environment:
+    REGION: ${self:custom.region}
     PRODUCTS_TABLE: ${self:custom.productsTableName}
     STOCKS_TABLE: ${self:custom.stocksTableName}
-    POSTGRESQL_HOST: !GetAtt PostgreSqlRDSInstance.Endpoint.Address
-    POSTGRESQL_PORT: !GetAtt PostgreSqlRDSInstance.Endpoint.Port
+    # POSTGRESQL_HOST: !GetAtt PostgreSqlRDSInstance.Endpoint.Address
+    # POSTGRESQL_PORT: !GetAtt PostgreSqlRDSInstance.Endpoint.Port
     DATABASE_USERNAME: ${self:custom.DATABASE_USERNAME}
     DATABASE_PASSWORD: ${self:custom.DATABASE_PASSWORD}
     DATABASE_NAME: ${self:custom.DATABASE_NAME}
+    SNS_TOPIC: ${self:custom.snsTopic}
+    SQS_TOPIC: ${self:custom.sqsTopic}
+    LAMBDA_PREFIX: ${self:service}-${self:provider.stage}
   
   iam:
     role:
       statements:
-        - Effect: Allow
-          Action:
-            - "rds:connect"
-            - "rds:CreateDBInstance"
-            - "rds:ModifyDBInstance"
-            - "rds:DeleteDBInstance"
-          Resource:
-            Fn::Join:
-              - ''
-              - - 'arn:aws:rds:::'
-                - Ref: PostgreSqlRDSInstance
+        # - Effect: Allow
+        #   Action:
+        #     - "rds:connect"
+        #     - "rds:CreateDBInstance"
+        #     - "rds:ModifyDBInstance"
+        #     - "rds:DeleteDBInstance"
+        #   Resource:
+        #     Fn::Join:
+        #       - ''
+        #       - - 'arn:aws:rds:::'
+        #         - Ref: PostgreSqlRDSInstance
+
         - Effect: Allow
           Action:
             - dynamodb:DescribeTable
@@ -53,6 +58,15 @@ provider:
             - dynamodb:DeleteItem
           Resource:
             - "Fn::GetAtt": [ StocksTable, Arn ]
+        - Effect: Allow
+          Action:
+            - sqs:*
+          Resource:
+            - "Fn::GetAtt": [ CatalogItemsQueue, Arn ]
+        - Effect: Allow
+          Action:
+            - sns:*
+          Resource: ${self:custom.snsTopic}
 
 plugins:
   - serverless-webpack
@@ -64,6 +78,11 @@ custom:
     includeModules: true
     excludeFiles: src/**/*.test.js
   documentation: ${file(serverless.doc.yml):documentation}
+  region: ${env:REGION}
+  snsName: createProductTopic
+  sqsName: catalogItemsQueue.fifo
+  sqsTopic: arn:aws:sqs:${aws:region}:${aws:accountId}:${self:custom.sqsName}
+  snsTopic: arn:aws:sns:${aws:region}:${aws:accountId}:${self:custom.snsName}
   productsTableName: 'products'
   stocksTableName: 'stocks'
   DATABASE_USERNAME: ${env:DATABASE_USERNAME}
@@ -71,6 +90,12 @@ custom:
   DATABASE_NAME: ${env:DB_NAME}
 
 functions:
+  catalogBatchProcess:
+      handler: handler.catalogBatchProcess
+      events:
+        - sqs:
+            arn: ${self:custom.sqsTopic}
+            batchSize: 5
   getProductById:
     handler: handler.getProductById
     events:
@@ -149,23 +174,56 @@ functions:
 
 resources:
   Resources:
-    PostgreSqlRDSInstance:
-        Type: AWS::RDS::DBInstance
-        DeletionPolicy: Retain
-        UpdateReplacePolicy: Retain
-        Properties:
-          MasterUsername: ${self:custom.DATABASE_USERNAME}
-          MasterUserPassword: ${self:custom.DATABASE_PASSWORD}
-          DBName: ${self:custom.DATABASE_NAME}
-          AllocatedStorage: 5
-          DBInstanceClass: db.t3.micro
-          Engine: postgres
-          PubliclyAccessible: true
+    # PostgreSqlRDSInstance:
+    #     Type: AWS::RDS::DBInstance
+    #     DeletionPolicy: Retain
+    #     UpdateReplacePolicy: Retain
+    #     Properties:
+    #       MasterUsername: ${self:custom.DATABASE_USERNAME}
+    #       MasterUserPassword: ${self:custom.DATABASE_PASSWORD}
+    #       DBName: ${self:custom.DATABASE_NAME}
+    #       AllocatedStorage: 5
+    #       DBInstanceClass: db.t3.micro
+    #       Engine: postgres
+    #       PubliclyAccessible: true
+
+    CatalogItemsQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: ${self:custom.sqsName}
+        FifoQueue: true
+        ContentBasedDeduplication: true
+
+    CreateProductTopic:
+      Type: AWS::SNS::Topic
+      Properties:
+        DisplayName: 'Product topic'
+        TopicName: createProductTopic
+
+    CreateProductTopicSubscription:
+      Type: AWS::SNS::Subscription
+      Properties:
+        Endpoint: "Aliaksandr_Nisunou@epam.com"
+        Protocol: "email"
+        TopicArn: { "Ref": "CreateProductTopic" }
+        FilterPolicyScope: MessageAttributes
+        FilterPolicy:
+          productCount: [ { "numeric": [ "<", 2 ] } ]
+
+    CreateProductTopicPriceSubscription:
+      Type: AWS::SNS::Subscription
+      Properties:
+        Endpoint: "nisunov@gmail.com"
+        Protocol: "email"
+        TopicArn: { "Ref": "CreateProductTopic" }
+        FilterPolicyScope: MessageAttributes
+        FilterPolicy:
+          productPrice: [ { "numeric": [ ">", 100 ] } ]
 
     ProductsTable:
       Type: AWS::DynamoDB::Table
       DeletionPolicy: Delete
-      UpdateReplacePolicy: Snapshot
+      UpdateReplacePolicy: Delete
       Properties:
         TableName: ${self:custom.productsTableName}
         AttributeDefinitions:
@@ -179,7 +237,7 @@ resources:
     StocksTable:
       Type: AWS::DynamoDB::Table
       DeletionPolicy: Delete
-      UpdateReplacePolicy: Snapshot
+      UpdateReplacePolicy: Delete
       Properties:
         TableName: ${self:custom.stocksTableName}
         AttributeDefinitions:

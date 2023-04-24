@@ -1,10 +1,9 @@
-import { winstonLogger } from "./utils/winstonLogger";
-import { errorResponse, successResponse } from "./utils/apiResponseBuilder";
-import { v4 as uuidv4 } from 'uuid';
-import { DynamoDBClient, TransactWriteItemsCommand } from "@aws-sdk/client-dynamodb";
+import { winstonLogger } from './utils/winstonLogger';
+import { errorResponse, successResponse } from './utils/apiResponseBuilder';
+import { insertProduct } from './utils/insertProduct';
 
-type ProductBody = {
-    id: number;
+export type ProductBody = {
+    id?: string;
     title: string;
     description: string;
     price: number;
@@ -12,44 +11,16 @@ type ProductBody = {
 }
 
 export const createProduct = async (event) => {
-    try {
-        const db = new DynamoDBClient({});
-        const { title, description, price, count }: ProductBody = JSON.parse(event.body) as any as ProductBody;
+    winstonLogger.logRequest(`Incoming event: ${ JSON.stringify( event ) }`);
 
-        winstonLogger.logRequest(`Incoming event: ${ JSON.stringify( event ) }`);
+    try {
+        const { title, description, price, count }: ProductBody = JSON.parse(event.body) as any as ProductBody;
 
         if (!title || !description || !price || !count) {
             return successResponse({ message: 'Mailformed payload' }, 400);
         }
         
-        const productId = uuidv4();
-
-        await db.send(new TransactWriteItemsCommand({
-            ReturnItemCollectionMetrics: 'NONE',
-            ReturnConsumedCapacity: 'TOTAL',
-            TransactItems: [
-                {
-                    Put: {
-                        TableName: process.env.PRODUCTS_TABLE,
-                        Item: {
-                            id: { S: productId },
-                            title: { S: title },
-                            description: { S: description },
-                            price: { N: `${price}` },
-                        },
-                    },
-                },
-                {
-                    Put: {
-                        TableName: process.env.STOCKS_TABLE,
-                        Item: {
-                            product_id: { S: productId },
-                            count: { N: `${count}` },
-                        },
-                    },
-                },
-            ],
-        }));
+        const productId = await insertProduct({ title, description, price, count });
 
         winstonLogger.logRequest(`Created product: ${ JSON.stringify(productId) }`);
 

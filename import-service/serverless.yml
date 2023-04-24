@@ -11,6 +11,7 @@ provider:
   environment:
     REGION: ${self:custom.region}
     BUCKET: ${self:custom.bucket}
+    SQS_URL: ${self:custom.sqsUrl}
   iam:
     role:
       statements:
@@ -24,6 +25,10 @@ provider:
             - 'logs:CreateLogStream'
             - 'logs:PutLogEvents'
           Resource: 'arn:aws:logs:*:*:*'
+        - Effect: Allow
+          Action:
+            - "sqs:SendMessage"
+          Resource: arn:aws:sqs:${aws:region}:${aws:accountId}:${self:custom.sqsName}
 
 plugins:
   - serverless-webpack
@@ -37,6 +42,8 @@ custom:
         - csv-parser
   bucket: ${env:BUCKET}
   region: ${env:REGION}
+  sqsName: catalogItemsQueue.fifo
+  sqsUrl: https://sqs.${self:custom.region}.amazonaws.com/${aws:accountId}/${self:custom.sqsName}
 
 functions:
   importProductsFile:
