@@ -1,0 +1,24 @@
+service: authorization-service
+
+frameworkVersion: "3"
+useDotenv: true
+
+plugins:
+  - serverless-webpack
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: us-east-1
+  profile: sandx
+  environment:
+    aliaksandrnisunou: ${env:aliaksandrnisunou}
+
+functions:
+  basicAuthorizer:
+    handler: handler.basicAuthorizer
+
+custom:
+  webpack:
+    webpackConfig: webpack.config.js
+    includeModules: true
