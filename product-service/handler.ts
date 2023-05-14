@@ -1,1 +1,1 @@
-export { getProductById, getAllProducts, createProduct } from './src';
+export { getProductById, getAllProducts, createProduct, catalogBatchProcess } from './src';

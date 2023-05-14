@@ -4,6 +4,7 @@ import { Callback, Context, S3Event } from 'aws-lambda';
 import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
 import { winstonLogger } from './utils/winstonLogger';
 import { moveFileToDirectory } from './utils/moveFileToDirectory';
+import { sendSQSEvent } from './utils/sendSQSEvent';
 
 export const importFileParser = async (event: S3Event, _context: Context, callback: Callback): Promise<void> => {
     try {
@@ -25,7 +26,8 @@ export const importFileParser = async (event: S3Event, _context: Context, callba
                 stream
                     .pipe(csv())
                     .on('data', async (data) => {
-                        winstonLogger.logRequest(data);
+                        winstonLogger.logRequest(JSON.stringify(data));
+                        await sendSQSEvent(data);
                     })
                     .on('close', () => {
                         callback();
